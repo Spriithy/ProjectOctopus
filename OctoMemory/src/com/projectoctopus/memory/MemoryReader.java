@@ -20,62 +20,89 @@
 package com.projectoctopus.memory;
 
 /**
- * @author Théophile Dano, Spriithy 2015
+ * A toolkit for reading a source's data
+ * @author Theophile Dano, Spriithy 2015
+ * @since 0.1
  */
 public class MemoryReader {
 
-	private MemoryReader() {}
+	private Memory	memory;
+	private boolean	linked	= false;
 
-	public static byte read_byte(Memory memory, int ptr) {
-		return memory.data[ptr];
+	public void link(Memory memory) {
+		assert(!linked);
+		linked = true;
+		this.memory = memory;
 	}
 
-	public static byte[] read_bytes(Memory memory, int ptr, int size) {
-		byte[] bytes = new byte[size];
-		for (int i = ptr; i < size + ptr; i++)
-			bytes[i - ptr] = read_byte(memory, i);
-		return bytes;
+	public byte read_byte(int ptr) {
+		return read_byte(memory.data, ptr);
 	}
 
-	public static short read_short(Memory memory, int ptr) {
-		return (short) ((memory.data[ptr] << 8) | memory.data[ptr + 1]);
+	public short read_short(int ptr) {
+		return read_short(memory.data, ptr);
 	}
 
-	public static char read_char(Memory memory, int ptr) {
-		return (char) ((memory.data[ptr] << 8) | memory.data[ptr + 1]);
+	public char read_char(int ptr) {
+		return read_char(memory.data, ptr);
 	}
 
-	public static int read_int(Memory memory, int ptr) {
-		byte[] bytes = read_bytes(memory, ptr, 4);
-		int result = 0;
-		for (int i = 0; i < 4; i++) {
-			result <<= 8;
-			result |= (bytes[i] & 0xff);
-		}
-		return result;
+	public int read_int(int ptr) {
+		return read_int(memory.data, ptr);
 	}
 
-	public static long read_long(Memory memory, int ptr) {
-		byte[] bytes = read_bytes(memory, ptr, 8);
-		long result = 0;
-		for (int i = 0; i < 8; i++) {
-			result <<= 8;
-			result |= (bytes[i] & 0xff);
-		}
-		return result;
+	public long read_long(int ptr) {
+		return read_long(memory.data, ptr);
 	}
 
-	public static float read_float(Memory memory, int ptr) {
-		return Float.intBitsToFloat(read_int(memory, ptr));
+	public float read_float(int ptr) {
+		return read_float(memory.data, ptr);
 	}
 
-	public static double read_double(Memory memory, int ptr) {
-		return Double.longBitsToDouble(read_long(memory, ptr));
+	public double read_double(int ptr) {
+		return read_double(memory.data, ptr);
 	}
 
-	public static boolean read_bool(Memory memory, int ptr) {
-		assert(memory.data[ptr] == 0 || memory.data[ptr] == 1);
-		return read_byte(memory, ptr) != 0;
+	public boolean read_bool(int ptr) {
+		return read_bool(memory.data, ptr);
 	}
 
+	public static byte read_byte(byte[] source, int ptr) {
+		return (byte) (0xff & source[ptr]);
+	}
+
+	public static short read_short(byte[] source, int ptr) {
+		return (short) ((0xff & source[ptr++]) << 8 | (0xff & source[ptr]));
+	}
+
+	public static char read_char(byte[] source, int ptr) {
+		return (char) ((0xff & source[ptr++]) << 8 | (0xff & source[ptr]));
+	}
+
+	public static int read_int(byte[] source, int ptr) {
+		return (int) ((int) (0xff & source[ptr++]) << 24 |
+				(int) (0xff & source[ptr++]) << 16 |
+				(int) (0xff & source[ptr++]) << 8 |
+				(int) (0xff & source[ptr++]) << 0);
+	}
+
+	public static long read_long(byte[] source, int ptr) {
+		return (long) ((long) (0xff & source[ptr++]) << 56 | (long) (0xff & source[ptr++]) << 48 |
+				(long) (0xff & source[ptr++]) << 40 | (long) (0xff & source[ptr++]) << 32 |
+				(long) (0xff & source[ptr++]) << 24 | (long) (0xff & source[ptr++]) << 16 |
+				(long) (0xff & source[ptr++]) << 8 | (long) (0xff & source[ptr++]) << 0);
+	}
+
+	public static float read_float(byte[] source, int ptr) {
+		return Float.intBitsToFloat(read_int(source, ptr));
+	}
+
+	public static double read_double(byte[] source, int ptr) {
+		return Double.longBitsToDouble(read_long(source, ptr));
+	}
+
+	public static boolean read_bool(byte[] source, int ptr) {
+		assert(source[ptr] == 0 || source[ptr] == 1);
+		return source[ptr] != 0;
+	}
 }
